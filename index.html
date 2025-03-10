@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 400px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .google-signin-button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .google-signin-button:hover {
+      background-color: #357AE8;
+    }
+    .success-message {
+      display: none;
+      text-align: center;
+      color: green;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Create Account</h2>
+    <form id="registration-form">
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Register</button>
+    </form>
+    <p class="success-message" id="success-message">Registration successful, please login.</p>
+
+    <!-- Google Sign-In Button -->
+    <button class="google-signin-button" id="google-signin-button">Sign Up with Google</button>
+  </div>
+
+  <!-- Firebase SDK (Modular version) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDcKue5UwxmpR2hVEoALaBhGIPitaim7lk",
+      authDomain: "taretaer-e0a45.firebaseapp.com",
+      projectId: "taretaer-e0a45",
+      storageBucket: "taretaer-e0a45.firebasestorage.app",
+      messagingSenderId: "45975842004",
+      appId: "1:45975842004:web:30766389b42f2511a8df41",
+      measurementId: "G-W3SSVZM3HR"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Google Auth Provider
+    const googleProvider = new GoogleAuthProvider();
+
+    // Get the form and success message elements
+    const form = document.getElementById('registration-form');
+    const successMessage = document.getElementById('success-message');
+    const googleSignInButton = document.getElementById('google-signin-button');
+
+    // Register new user
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Firebase authentication - Create user with email and password
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Registration successful
+          successMessage.style.display = 'block'; // Show success message
+          form.reset(); // Clear the form
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          alert(`Error: ${errorMessage}`);
+        });
+    });
+
+    // Sign up with Google
+    googleSignInButton.addEventListener('click', () => {
+      signInWithPopup(auth, googleProvider)
+        .then((result) => {
+          // User signed in with Google
+          const user = result.user;
+          successMessage.style.display = 'block'; // Show success message
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          alert(`Error: ${errorMessage}`);
+        });
+    });
+  </script>
+
+</body>
+</html>
