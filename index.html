@@ -125,6 +125,11 @@
           // Registration successful
           successMessage.style.display = 'block'; // Show success message
           form.reset(); // Clear the form
+
+          // Redirect after 3 seconds
+          setTimeout(() => {
+            window.location.href = 'login.html'; // Redirect to login page
+          }, 3000); // 3 seconds delay
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -140,6 +145,11 @@
           // User signed in with Google
           const user = result.user;
           successMessage.style.display = 'block'; // Show success message
+
+          // Redirect after 3 seconds
+          setTimeout(() => {
+            window.location.href = 'dashboard.html'; // Redirect to dashboard
+          }, 3000); // 3 seconds delay
         })
         .catch((error) => {
           const errorCode = error.code;
