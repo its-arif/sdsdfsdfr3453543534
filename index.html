@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registration</title>
+  <title>Email OTP Verification</title>
   <style>
     /* Styling same as before */
     body {
@@ -46,55 +46,33 @@
     button:hover {
       background-color: #45a049;
     }
-    .google-signin-button {
-      width: 100%;
-      padding: 10px;
-      background-color: #4285F4;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-    .google-signin-button:hover {
-      background-color: #357AE8;
-    }
     .success-message {
       display: none;
       text-align: center;
       color: green;
       margin-top: 10px;
     }
-    .otp-verification {
-      display: none;
-    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h2>Create Account</h2>
-    <form id="registration-form">
-      <input type="text" id="name" placeholder="Full Name" required>
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="password" id="password" placeholder="Password" required>
-      <button type="submit">Register</button>
+    <h2>Email OTP Verification</h2>
+    <form id="email-otp-form">
+      <input type="email" id="email" placeholder="Enter your email" required>
+      <button type="submit">Send OTP</button>
     </form>
-    <div class="otp-verification">
+    <form id="verify-otp-form" style="display: none;">
       <input type="text" id="otp" placeholder="Enter OTP" required>
-      <button id="verify-otp">Verify OTP</button>
-    </div>
-    <p class="success-message" id="success-message">Registration successful, please login.</p>
-
-    <!-- Google Sign-In Button -->
-    <button class="google-signin-button" id="google-signin-button">Sign Up with Google</button>
+      <button type="submit">Verify OTP</button>
+    </form>
+    <p class="success-message" id="success-message">OTP verification successful! You are logged in.</p>
   </div>
 
   <!-- Firebase SDK (Modular version) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+    import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
 
     // Firebase configuration
     const firebaseConfig = {
@@ -112,77 +90,58 @@
     const auth = getAuth(app);
 
     // Get DOM elements
-    const form = document.getElementById('registration-form');
-    const otpInput = document.getElementById('otp');
-    const otpVerificationDiv = document.querySelector('.otp-verification');
-    const verifyOtpButton = document.getElementById('verify-otp');
+    const emailOtpForm = document.getElementById('email-otp-form');
+    const verifyOtpForm = document.getElementById('verify-otp-form');
     const successMessage = document.getElementById('success-message');
-    const googleSignInButton = document.getElementById('google-signin-button');
-    
-    let emailForSignIn = null;
+    const emailInput = document.getElementById('email');
+    const otpInput = document.getElementById('otp');
 
-    // Registration with email and password
-    form.addEventListener('submit', (e) => {
+    // Send OTP (sign-in link) to the user's email
+    emailOtpForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      const email = emailInput.value;
+      const actionCodeSettings = {
+        // URL you want to redirect back to. The domain (www.example.com) for this
+        // must be in the authorized domains list in the Firebase Console.
+        url: 'https://your-app.firebaseapp.com/finishSignUp?cartId=1234',
+        handleCodeInApp: true,
+      };
 
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // Send OTP to the user's email (email link)
-          const actionCodeSettings = {
-            url: 'https://your-app.firebaseapp.com/finishSignUp', // Change to your app's URL
-            handleCodeInApp: true,
-          };
-          
-          sendSignInLinkToEmail(auth, email, actionCodeSettings)
-            .then(() => {
-              // Save email to localStorage
-              localStorage.setItem('emailForSignIn', email);
+      sendSignInLinkToEmail(auth, email, actionCodeSettings)
+        .then(() => {
+          // The link was successfully sent. Save the email locally to complete the login later
+          window.localStorage.setItem('emailForSignIn', email);
 
-              // Show OTP input box
-              otpVerificationDiv.style.display = 'block';
-            })
-            .catch((error) => {
-              console.error(error.message);
-            });
+          // Show OTP input field
+          emailOtpForm.style.display = 'none';
+          verifyOtpForm.style.display = 'block';
         })
         .catch((error) => {
-          alert(`Error: ${error.message}`);
+          const errorMessage = error.message;
+          alert(`Error: ${errorMessage}`);
         });
     });
 
-    // Verify OTP (email link)
-    verifyOtpButton.addEventListener('click', () => {
-      const email = localStorage.getItem('emailForSignIn');
-      const otp = otpInput.value; // OTP is the email link clicked
+    // Verify OTP (sign-in link) and complete login
+    verifyOtpForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const email = window.localStorage.getItem('emailForSignIn');
+      const otp = otpInput.value; // The OTP in this case is the URL query parameter
 
       if (isSignInWithEmailLink(auth, otp)) {
         signInWithEmailLink(auth, email, otp)
           .then((result) => {
-            // OTP verification successful, redirect to dashboard
-            window.location.href = 'dashboard.html';
+            // OTP verification successful
+            successMessage.style.display = 'block'; // Show success message
+            verifyOtpForm.style.display = 'none';
           })
           .catch((error) => {
-            alert(`Error: ${error.message}`);
+            const errorMessage = error.message;
+            alert(`Error: ${errorMessage}`);
           });
       }
-    });
-
-    // Google Sign Up (automatic redirect to dashboard)
-    googleSignInButton.addEventListener('click', () => {
-      const googleProvider = new GoogleAuthProvider();
-
-      signInWithPopup(auth, googleProvider)
-        .then((result) => {
-          // After successful sign up with Google, redirect to dashboard
-          window.location.href = 'dashboard.html';
-        })
-        .catch((error) => {
-          console.error(error.message);
-        });
     });
   </script>
 
